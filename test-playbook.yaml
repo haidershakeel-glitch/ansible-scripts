@@ -1,7 +1,7 @@
 ---
 - name: Ping Test
   hosts: all
-  gather_facts: false
+  gather_facts: true
 
   tasks:
     - name: Ping test
@@ -11,3 +11,7 @@
     - name: Show ping result
       ansible.builtin.debug:
         msg: "{{ ping_result }}"
+
+    - name: Show host IP address
+      ansible.builtin.debug:
+        msg: "Host IP: {{ ansible_default_ipv4.address }}"
