@@ -15,3 +15,12 @@
     - name: Show host IP address
       ansible.builtin.debug:
         msg: "Host IP: {{ ansible_default_ipv4.address }}"
+
+    - name: Check if oss_test user exists
+      ansible.builtin.command: id oss_test
+      register: user_check
+      ignore_errors: true
+
+    - name: Show oss_test status
+      ansible.builtin.debug:
+        msg: "{{ user_check.stdout if user_check.rc == 0 else 'oss_test does not exist on this host' }}"
