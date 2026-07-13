@@ -24,3 +24,16 @@
     - name: Show oss_test status
       ansible.builtin.debug:
         msg: "{{ user_check.stdout if user_check.rc == 0 else 'oss_test does not exist on this host' }}"
+
+    - name: Create oss_test user if it does not exist
+      ansible.builtin.user:
+        name: oss_test
+        state: present
+        password: "{{ 'Telus@123' | password_hash('sha512') }}"
+      when: user_check.rc != 0
+      become: true
+
+    - name: Confirm oss_test was created
+      ansible.builtin.debug:
+        msg: "oss_test user created successfully"
+      when: user_check.rc != 0
