@@ -41,3 +41,16 @@ This workflow creates an AI agent that can interact with infrastructure tools (A
    - Enter model name: `claude-sonnet-4-6`
 10. Click **Settings** tab → uncheck **"Use Responses API"** — this is required as Fuelix does not support the OpenAI Responses API format
 11. Click **Save**
+
+---
+
+## Step 3: Add Memory Node
+
+1. On the canvas, click **"+"** on the **Memory** connector below the AI Agent node
+2. Select **"Simple Memory"** under "For beginners" — no credentials required, stores in n8n memory
+3. Leave all default settings:
+   - **Session ID**: Connected Chat Trigger Node
+   - **Context Window Length**: 5 (agent remembers last 5 interactions)
+4. Click **Save**
+
+> Note: Simple Memory is for development/demo only. For production use, switch to MongoDB, Postgres, or Redis Chat Memory for persistent storage across restarts.
