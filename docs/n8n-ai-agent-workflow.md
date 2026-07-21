@@ -54,3 +54,41 @@ This workflow creates an AI agent that can interact with infrastructure tools (A
 4. Click **Save**
 
 > Note: Simple Memory is for development/demo only. For production use, switch to MongoDB, Postgres, or Redis Chat Memory for persistent storage across restarts.
+
+---
+
+## Step 4: Add NetBox Query Tool
+
+1. On the canvas, click **"+"** on the **Tool** connector below the AI Agent node
+2. Search **"HTTP Request"** and select it
+3. Configure the node:
+
+   **Description:**
+   ```
+   Use this tool to query devices from NetBox inventory. Use when the user asks about devices, servers, IP addresses, serial numbers, or any network inventory information.
+   ```
+
+   **Method:** `GET`
+
+   **URL:**
+   ```
+   http://host.docker.internal:8000/api/dcim/devices/
+   ```
+   > Note: Use `host.docker.internal` instead of `localhost` because n8n runs inside Docker and cannot reach the host machine via `localhost`. When switching to the lab NetBox instance, replace this with the full lab URL.
+
+   **Authentication:** `Generic Credential Type`
+   - **Generic Auth Type:** `Header Auth`
+   - **Header Auth account:** Create new credential:
+     - **Name:** `Authorization`
+     - **Value:** `Token your-netbox-api-token`
+
+4. Click **Execute step** to verify data is returned from NetBox
+5. Click **Save**
+
+> Note: NetBox API is organized by sections — you need to specify the endpoint. Key endpoints:
+> - `/api/dcim/devices/` — physical devices (servers, switches, routers)
+> - `/api/ipam/ip-addresses/` — IP addresses
+> - `/api/dcim/interfaces/` — device interfaces/ports
+> - `/api/ipam/prefixes/` — subnets
+>
+> Add separate HTTP Request tool nodes for each type of query you want to support.
