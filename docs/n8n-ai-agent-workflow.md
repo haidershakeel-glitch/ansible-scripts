@@ -92,3 +92,30 @@ This workflow creates an AI agent that can interact with infrastructure tools (A
 > - `/api/ipam/prefixes/` — subnets
 >
 > Add separate HTTP Request tool nodes for each type of query you want to support.
+
+---
+
+## Step 5: Add IP Address Query Tool
+
+1. Click **"+"** on the **Tool** connector again
+2. Search **"HTTP Request"** and select it
+3. Configure the node:
+
+   **Description:**
+   ```
+   Use this tool to query IP addresses in NetBox. Use when the user asks about a specific IP address, wants to find what device an IP belongs to, or asks about subnets and IP assignments.
+   ```
+
+   **Method:** `GET`
+
+   **URL:**
+   ```
+   http://host.docker.internal:8000/api/ipam/ip-addresses/
+   ```
+
+   **Authentication:** `Generic Credential Type` → `Header Auth` → same NetBox token as Step 4
+
+4. Click **Execute step** to verify data is returned
+5. Click **Save**
+
+**Test:** Ask the agent "What device is [IP address] assigned to?" — the agent will search NetBox IP records and return the device assignment or inform you if the IP is not documented.
