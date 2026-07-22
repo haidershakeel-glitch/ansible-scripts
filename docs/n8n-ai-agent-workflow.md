@@ -119,3 +119,64 @@ This workflow creates an AI agent that can interact with infrastructure tools (A
 5. Click **Save**
 
 **Test:** Ask the agent "What device is [IP address] assigned to?" — the agent will search NetBox IP records and return the device assignment or inform you if the IP is not documented.
+
+---
+
+## Step 6: Add Lookup Tools
+
+These tools allow the agent to look up existing NetBox data before creating new records.
+
+### Get Sites Tool
+1. Click **"+"** on the **Tool** connector
+2. Search **"HTTP Request"** and select it
+3. Configure:
+   - **Description:** `Use this tool to get a list of all available sites in NetBox. Use this before creating a device to find the correct site ID, or when a user asks about locations and sites.`
+   - **Method:** `GET`
+   - **URL:** `http://host.docker.internal:8000/api/dcim/sites/`
+   - **Authentication:** Same NetBox token
+4. Click **Save**
+
+### Get Device Types Tool
+1. Click **"+"** on the **Tool** connector
+2. Search **"HTTP Request"** and select it
+3. Configure:
+   - **Description:** `Use this tool to get a list of all available device types in NetBox. Use this before creating a device to find the correct device type ID based on the manufacturer and model.`
+   - **Method:** `GET`
+   - **URL:** `http://host.docker.internal:8000/api/dcim/device-types/`
+   - **Authentication:** Same NetBox token
+4. Click **Save**
+
+### Get Manufacturers Tool
+1. Click **"+"** on the **Tool** connector
+2. Search **"HTTP Request"** and select it
+3. Configure:
+   - **Description:** `Use this tool to get a list of all available manufacturers in NetBox. Use this before creating a new device type to find or verify the correct manufacturer ID.`
+   - **Method:** `GET`
+   - **URL:** `http://host.docker.internal:8000/api/dcim/manufacturers/`
+   - **Authentication:** Same NetBox token
+4. Click **Save**
+
+---
+
+## Step 7: Add Create Site Tool
+
+1. Click **"+"** on the **Tool** connector
+2. Search **"HTTP Request"** and select it
+3. Configure:
+   - **Description:** `Use this tool to create a new site in NetBox. Use this when a user wants to add a device at a site that does not exist yet. Requires a site name and status.`
+   - **Method:** `POST`
+   - **URL:** `http://host.docker.internal:8000/api/dcim/sites/`
+   - **Authentication:** Same NetBox token
+   - **Send Body:** Toggle ON
+     - **Body Content Type:** `JSON`
+     - **Body:**
+     ```json
+     {
+       "name": "={{ $fromAI('site_name') }}",
+       "slug": "={{ $fromAI('site_slug') }}",
+       "status": "active"
+     }
+     ```
+4. Click **Save**
+
+> Note: `$fromAI()` fields are filled in dynamically by the agent based on what the user types in chat. Site only requires `name` and `slug` — IP addresses are assigned to devices and interfaces, not sites.
