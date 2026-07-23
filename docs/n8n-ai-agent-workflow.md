@@ -302,3 +302,86 @@ These tools allow the agent to look up existing NetBox data before creating new 
 4. Click **Save**
 
 > Note: The full flow when a user asks to add a device with an IP address: Get Sites → Get Device Types → Get Manufacturers → (create any that don't exist) → Create Device → Create Interface → Assign IP Address. The agent handles this automatically based on the tool descriptions.
+
+---
+
+## Step 13: Add Get Device Roles Tool
+
+Required because NetBox mandates a device role when creating a device.
+
+1. Click **"+"** on the **Tool** connector
+2. Search **"HTTP Request"** and select it
+3. Configure:
+   - **Description:** `Use this tool to get a list of all available device roles in NetBox. Use this before creating a device to find the correct role ID.`
+   - **Method:** `GET`
+   - **URL:** `http://host.docker.internal:8000/api/dcim/device-roles/`
+   - **Authentication:** Same NetBox token
+4. Click **Save**
+
+---
+
+## Step 14: Update Create Device Tool — Add Role Field
+
+Go back into the **Create Device** HTTP Request node and update:
+
+**Description** (updated):
+```
+Use this tool to create a new device in NetBox. Before calling this tool, look up or create the site and device type first to get their IDs, and look up the device role ID. After creating the device, create an interface and assign the IP address.
+```
+
+**Body** (updated to include role):
+```json
+{
+  "name": "{{ $fromAI('device_name') }}",
+  "device_type": { "id": "{{ $fromAI('device_type_id') }}" },
+  "site": { "id": "{{ $fromAI('site_id') }}" },
+  "role": { "id": "{{ $fromAI('role_id') }}" },
+  "status": "active"
+}
+```
+
+---
+
+## Fixes: Prevent Duplicate Creation
+
+Update the descriptions on the following tools to prevent the agent from trying to create records that already exist:
+
+**Create Site** — add to description:
+> ONLY call this if the site was not found after checking with the Get Sites tool.
+
+**Create Manufacturer** — add to description:
+> ONLY call this if the manufacturer was not found after checking with the Get Manufacturers tool.
+
+**Create Device Type** — add to description:
+> ONLY call this if the device type was not found after checking with the Get Device Types tool.
+
+---
+
+## Important: Expression Syntax in JSON Body
+
+When using `$fromAI()` inside the JSON body of an HTTP Request node, do **not** include the `=` prefix:
+
+| Context | Correct syntax |
+|---|---|
+| Regular n8n field | `={{ $fromAI('field_name') }}` |
+| JSON body textarea | `{{ $fromAI('field_name') }}` |
+
+---
+
+## End-to-End Test Result
+
+**Test prompt:** "Add a new device called test-router-01, it's a Cisco Catalyst 9300, located at the Toronto site, with IP address 10.0.0.50/24"
+
+**Agent output:**
+| Field | Value |
+|---|---|
+| Device Name | test-router-01 |
+| Device Type | Cisco Catalyst 9300 |
+| Manufacturer | Cisco |
+| Role | Router |
+| Site | Toronto |
+| Status | Active |
+| Interface | GigabitEthernet0/0 |
+| IP Address | 10.0.0.50/24 |
+
+The agent automatically chained all required steps: looked up existing records, created Toronto site and Catalyst 9300 device type, created the device, created the interface, and assigned the IP — all from a single chat message.
