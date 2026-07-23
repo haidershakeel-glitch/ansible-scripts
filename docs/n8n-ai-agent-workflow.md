@@ -229,3 +229,76 @@ These tools allow the agent to look up existing NetBox data before creating new 
 4. Click **Save**
 
 > Note: The agent will first call the Get Manufacturers tool to find the correct manufacturer ID, then pass it here when creating the device type.
+
+---
+
+## Step 10: Add Create Interface Tool
+
+1. Click **"+"** on the **Tool** connector
+2. Search **"HTTP Request"** and select it
+3. Configure:
+   - **Description:** `Use this tool to create a network interface on a device in NetBox. Use this after creating a device, before assigning an IP address. Requires a device ID and interface name. Use type "1000base-t" for standard ethernet.`
+   - **Method:** `POST`
+   - **URL:** `http://host.docker.internal:8000/api/dcim/interfaces/`
+   - **Authentication:** Same NetBox token
+   - **Send Body:** Toggle ON
+     - **Body Content Type:** `JSON`
+     - **Body:**
+     ```json
+     {
+       "device": { "id": "={{ $fromAI('device_id') }}" },
+       "name": "={{ $fromAI('interface_name') }}",
+       "type": "1000base-t"
+     }
+     ```
+4. Click **Save**
+
+---
+
+## Step 11: Add Assign IP Address Tool
+
+1. Click **"+"** on the **Tool** connector
+2. Search **"HTTP Request"** and select it
+3. Configure:
+   - **Description:** `Use this tool to assign an IP address to a device interface in NetBox. Use this after creating the device and interface. Requires the IP address in CIDR format (e.g. 10.0.0.1/24) and the interface ID.`
+   - **Method:** `POST`
+   - **URL:** `http://host.docker.internal:8000/api/ipam/ip-addresses/`
+   - **Authentication:** Same NetBox token
+   - **Send Body:** Toggle ON
+     - **Body Content Type:** `JSON`
+     - **Body:**
+     ```json
+     {
+       "address": "={{ $fromAI('ip_address') }}",
+       "assigned_object_type": "dcim.interface",
+       "assigned_object_id": "={{ $fromAI('interface_id') }}",
+       "status": "active"
+     }
+     ```
+4. Click **Save**
+
+---
+
+## Step 12: Add Create Device Tool
+
+1. Click **"+"** on the **Tool** connector
+2. Search **"HTTP Request"** and select it
+3. Configure:
+   - **Description:** `Use this tool to create a new device in NetBox. Use this when a user wants to add a device to inventory. Before calling this tool, look up or create the site and device type first to get their IDs. After creating the device, create an interface and assign the IP address.`
+   - **Method:** `POST`
+   - **URL:** `http://host.docker.internal:8000/api/dcim/devices/`
+   - **Authentication:** Same NetBox token
+   - **Send Body:** Toggle ON
+     - **Body Content Type:** `JSON`
+     - **Body:**
+     ```json
+     {
+       "name": "={{ $fromAI('device_name') }}",
+       "device_type": { "id": "={{ $fromAI('device_type_id') }}" },
+       "site": { "id": "={{ $fromAI('site_id') }}" },
+       "status": "active"
+     }
+     ```
+4. Click **Save**
+
+> Note: The full flow when a user asks to add a device with an IP address: Get Sites → Get Device Types → Get Manufacturers → (create any that don't exist) → Create Device → Create Interface → Assign IP Address. The agent handles this automatically based on the tool descriptions.
