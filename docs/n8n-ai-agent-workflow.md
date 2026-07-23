@@ -180,3 +180,27 @@ These tools allow the agent to look up existing NetBox data before creating new 
 4. Click **Save**
 
 > Note: `$fromAI()` fields are filled in dynamically by the agent based on what the user types in chat. Site only requires `name` and `slug` — IP addresses are assigned to devices and interfaces, not sites.
+
+---
+
+## Step 8: Add Create Manufacturer Tool
+
+1. Click **"+"** on the **Tool** connector
+2. Search **"HTTP Request"** and select it
+3. Configure:
+   - **Description:** `Use this tool to create a new manufacturer in NetBox. Use this when a user wants to create a device type but the manufacturer does not exist yet. Requires a manufacturer name and slug.`
+   - **Method:** `POST`
+   - **URL:** `http://host.docker.internal:8000/api/dcim/manufacturers/`
+   - **Authentication:** Same NetBox token
+   - **Send Body:** Toggle ON
+     - **Body Content Type:** `JSON`
+     - **Body:**
+     ```json
+     {
+       "name": "={{ $fromAI('manufacturer_name') }}",
+       "slug": "={{ $fromAI('manufacturer_slug') }}"
+     }
+     ```
+4. Click **Save**
+
+> Note: The agent calls this automatically if a user asks to add a device from a manufacturer that doesn't exist yet — the user does not need to create the manufacturer separately.
