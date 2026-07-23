@@ -204,3 +204,28 @@ These tools allow the agent to look up existing NetBox data before creating new 
 4. Click **Save**
 
 > Note: The agent calls this automatically if a user asks to add a device from a manufacturer that doesn't exist yet — the user does not need to create the manufacturer separately.
+
+---
+
+## Step 9: Add Create Device Type Tool
+
+1. Click **"+"** on the **Tool** connector
+2. Search **"HTTP Request"** and select it
+3. Configure:
+   - **Description:** `Use this tool to create a new device type in NetBox. Use this when a user wants to add a device but the model does not exist yet. Requires a manufacturer ID, model name, and slug.`
+   - **Method:** `POST`
+   - **URL:** `http://host.docker.internal:8000/api/dcim/device-types/`
+   - **Authentication:** Same NetBox token
+   - **Send Body:** Toggle ON
+     - **Body Content Type:** `JSON`
+     - **Body:**
+     ```json
+     {
+       "manufacturer": { "id": "={{ $fromAI('manufacturer_id') }}" },
+       "model": "={{ $fromAI('model_name') }}",
+       "slug": "={{ $fromAI('model_slug') }}"
+     }
+     ```
+4. Click **Save**
+
+> Note: The agent will first call the Get Manufacturers tool to find the correct manufacturer ID, then pass it here when creating the device type.
